@@ -8,7 +8,7 @@ HEADERS = ft_ping.h
 
 HEADERS := $(addprefix $(HEADERS_DIR), $(HEADERS))
 
-SRCS := main.c args.c output.c
+SRCS := main.c args.c output.c signal.c ping.c
 
 SRCS := $(addprefix $(SRCS_DIR), $(SRCS))
 

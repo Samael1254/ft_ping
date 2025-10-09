@@ -1,3 +1,4 @@
+#include "defs.h"
 #include "ft_ping.h"
 #include <stdbool.h>
 #include <stdint.h>
