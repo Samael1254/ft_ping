@@ -31,7 +31,10 @@ void getOptions(char **args, bool *options)
 	{
 		const char *arg = *args;
 		if (arg[0] != '-')
+		{
+			args++;
 			continue;
+		}
 		if (arg[1] == '-')
 		{
 			options[getLongOptionId(arg + 2)] = true;
@@ -42,4 +45,37 @@ void getOptions(char **args, bool *options)
 			options[getOptionId(arg[j])] = true;
 		args++;
 	}
+}
+
+static uint8_t countHosts(char **args)
+{
+	uint8_t count = 0;
+
+	while (*args)
+	{
+		if ((*args)[0] != '-')
+			count++;
+		args++;
+	}
+	return count;
+}
+
+char **getHosts(char **args)
+{
+	uint8_t count = countHosts(args);
+	if (count == 0)
+		error("missing host operand", NULL);
+	char **hosts = (char **)malloc((count + 1) * sizeof(char *));
+	if (!hosts)
+		return NULL;
+
+	uint8_t i = 0;
+	while (*args)
+	{
+		if ((*args)[0] != '-')
+			hosts[i++] = *args;
+		args++;
+	}
+	hosts[i] = NULL;
+	return hosts;
 }

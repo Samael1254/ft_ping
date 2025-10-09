@@ -7,15 +7,20 @@
 
 int main(int argc, char **argv)
 {
-	(void)argc;
 	if (argc == 1)
-		return 1;
+	{
+		error("missing host operand", NULL);
+		return EXIT_FAILURE;
+	}
 	bool options[VALID_OPTIONS_NB];
 	memset(options, 0, VALID_OPTIONS_NB * sizeof(bool));
 	getOptions(argv + 1, options);
+	char **hosts = getHosts(argv + 1);
+	if (!hosts)
+		fatalError("malloc failed", "in getHosts");
 	if (options[Help])
 	{
 		help();
-		exit(EXIT_SUCCESS);
+		return EXIT_SUCCESS;
 	}
 }

@@ -1,11 +1,22 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 void error(const char *type, const char *msg)
 {
 	printf("ping: %s", type);
 	if (msg)
-		printf(": msg");
+		printf(": %s", msg);
 	printf("\n");
+	printf("Try 'ping --help' for more information.\n");
+}
+
+void fatalError(const char *type, const char *msg)
+{
+	printf("ping: fatal error: %s", type);
+	if (msg)
+		printf(": %s", msg);
+	printf("\n");
+	exit(EXIT_FAILURE);
 }
 
 void help(void)
