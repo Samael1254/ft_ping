@@ -6,10 +6,25 @@
 #include <string.h>
 #include <strings.h>
 
+static void freeHost(host_t *host)
+{
+	(void)host;
+}
+
 void freeState(state_t *state)
 {
+	for (uint8_t i = 0; i < state->hostsCount; i++)
+		freeHost(&state->hosts[i]);
 	if (state->hosts)
 		free(state->hosts);
+}
+
+void initState(state_t *state, char **argv)
+{
+	state->hostsCount = countHosts(argv + 1);
+	state->hosts = getHosts(argv + 1, state->hostsCount);
+	if (!state->hosts)
+		fatalError("malloc failed", "in getHosts");
 }
 
 int main(int argc, char **argv)
@@ -19,14 +34,14 @@ int main(int argc, char **argv)
 		error("missing host operand", NULL);
 		return EXIT_FAILURE;
 	}
+
 	bool options[VALID_OPTIONS_NB];
 	memset(options, 0, VALID_OPTIONS_NB * sizeof(bool));
 	getOptions(argv + 1, options);
-	state_t state;
-	memset(&state, 0, sizeof(state_t));
-	state.hosts = getHosts(argv + 1);
-	if (!state.hosts)
-		fatalError("malloc failed", "in getHosts");
+
+	state_t state = {};
+	initState(&state, argv);
+
 	setSignalHandlers();
 	if (options[Help])
 	{

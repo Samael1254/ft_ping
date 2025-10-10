@@ -10,8 +10,9 @@ void help(void);
 void error(const char *type, const char *msg);
 void fatalError(const char *type, const char *msg);
 
-void   getOptions(char **args, bool *options);
-char **getHosts(char **args);
+void    getOptions(char **args, bool *options);
+host_t *getHosts(char **args, uint8_t hostsCount);
+uint8_t countHosts(char **args);
 
 void setSignalHandlers();
 bool checkSIGINT();

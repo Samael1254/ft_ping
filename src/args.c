@@ -48,7 +48,7 @@ void getOptions(char **args, bool *options)
 	}
 }
 
-static uint8_t countHosts(char **args)
+uint8_t countHosts(char **args)
 {
 	uint8_t count = 0;
 
@@ -61,12 +61,11 @@ static uint8_t countHosts(char **args)
 	return count;
 }
 
-char **getHosts(char **args)
+host_t *getHosts(char **args, uint8_t hostsCount)
 {
-	uint8_t count = countHosts(args);
-	if (count == 0)
+	if (hostsCount == 0)
 		error("missing host operand", NULL);
-	char **hosts = (char **)malloc((count + 1) * sizeof(char *));
+	host_t *hosts = (host_t *)malloc(hostsCount * sizeof(host_t));
 	if (!hosts)
 		return NULL;
 
@@ -74,9 +73,8 @@ char **getHosts(char **args)
 	while (*args)
 	{
 		if ((*args)[0] != '-')
-			hosts[i++] = *args;
+			hosts[i++].name = *args;
 		args++;
 	}
-	hosts[i] = NULL;
 	return hosts;
 }

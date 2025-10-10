@@ -3,19 +3,19 @@
 
 void error(const char *type, const char *msg)
 {
-	printf("ping: %s", type);
+	fprintf(stderr, "ping: %s", type);
 	if (msg)
-		printf(": %s", msg);
-	printf("\n");
-	printf("Try 'ping --help' for more information.\n");
+		fprintf(stderr, ": %s", msg);
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Try 'ping --help' for more information.\n");
 }
 
 void fatalError(const char *type, const char *msg)
 {
-	printf("ping: fatal error: %s", type);
+	fprintf(stderr, "ping: fatal error: %s", type);
 	if (msg)
-		printf(": %s", msg);
-	printf("\n");
+		fprintf(stderr, ": %s", msg);
+	fprintf(stderr, "\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -31,12 +31,12 @@ void help(void)
 
 void invalidOption(char option)
 {
-	printf("ping: invalid option -- '%c'\n", option);
-	printf("Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ping: invalid option -- '%c'\n", option);
+	fprintf(stderr, "Try 'ping --help' for more information.\n");
 }
 
 void unrecognizedOption(const char *option)
 {
-	printf("ping: unrecognized option '--%s'\n", option);
-	printf("Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ping: unrecognized option '--%s'\n", option);
+	fprintf(stderr, "Try 'ping --help' for more information.\n");
 }
