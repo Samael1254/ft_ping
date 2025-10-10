@@ -15,9 +15,15 @@
 
 static uint16_t checksum(void *buf, uint32_t size)
 {
-	(void)buf;
-	(void)size;
-	return 0;
+	uint32_t        sum = 0;
+	const uint16_t *data = buf;
+	for (uint32_t i = 0; i < size; i++)
+	{
+		uint16_t word = data[i];
+		sum += word;
+	}
+	uint16_t chksum = (sum >> 4) + ((sum << 1) >> 1);
+	return ~chksum;
 }
 
 static void fillData(char *start, uint16_t size)
