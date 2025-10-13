@@ -61,7 +61,6 @@ static void updateLastSend(struct timeval *lastSend)
 void ping(state_t *state)
 {
 	fd_set         rfds;
-	struct timeval lastSend = {};
 	struct timeval tv = {
 	    .tv_sec = 0,
 	    .tv_usec = 0,
@@ -70,10 +69,12 @@ void ping(state_t *state)
 	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
 	{
-		host_t *host = &state->hosts[i];
+		struct timeval lastSend = {};
+		host_t        *host = &state->hosts[i];
 		connectToHost(host, state);
 		char     packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
 		uint32_t seq = 0;
+		uint32_t received = 0;
 		while (1)
 		{
 			// Check if received any packets
@@ -88,6 +89,7 @@ void ping(state_t *state)
 				ssize_t   bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, (struct sockaddr *)&host->addr, &addrlen);
 				if (bytesNb == -1)
 					fatalError("recvfrom failed in ping", strerror(errno), state, true);
+				received++;
 				receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, 0);
 			}
 
@@ -105,7 +107,7 @@ void ping(state_t *state)
 			if (checkSIGINT(state))
 				break;
 		}
-		statistics(host->name, seq, seq);
+		statistics(host->name, seq, received);
 	}
 	close(state->socket);
 }
