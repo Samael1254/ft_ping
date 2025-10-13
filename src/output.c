@@ -28,12 +28,16 @@ void fatalError(const char *type, const char *msg, state_t *state, bool closeSoc
 	exit(EXIT_FAILURE);
 }
 
-void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived)
+void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats)
 {
+	timeStats[0] /= (float)packetsSent;
+	timeStats[3] = sqrtf((timeStats[3] / (float)packetsSent) - timeStats[0] * timeStats[0]);
 	uint32_t packetLoss = 100 - (int)roundf((float)packetsReceived / (float)packetsSent * 100);
+
 	printf("--- %s ping statistics ---\n", hostname);
 	printf("%u packets transmitted. %u packets received, %u%% packet loss\n", packetsSent, packetsReceived, packetLoss);
-	printf("round-trip min/avg/max/stddev = \n");
+	printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n", timeStats[0], timeStats[1], timeStats[2],
+	       timeStats[3]);
 }
 
 void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time)

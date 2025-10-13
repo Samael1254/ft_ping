@@ -61,13 +61,25 @@ static float roundTripTime(const char *packet, state_t *state)
 	return (float)(recvTime.tv_sec - sendTime.tv_sec) * 1000 + (float)(recvTime.tv_usec - sendTime.tv_usec) / 1000;
 }
 
-static void receiveResponse(char *buf, state_t *state, host_t *host, uint32_t *received, uint32_t seq)
+static void updateTimeStats(float *timeStats, float rtt)
+{
+	timeStats[0] += rtt;
+	if (timeStats[1] == 0 || rtt < timeStats[1])
+		timeStats[1] = rtt;
+	if (rtt > timeStats[2])
+		timeStats[2] = rtt;
+	timeStats[3] += rtt * rtt;
+}
+
+static void receiveResponse(char *buf, state_t *state, host_t *host, uint32_t *received, uint32_t seq, float *timeStats)
 {
 	ssize_t bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, NULL, NULL);
 	if (bytesNb == -1)
 		fatalError("recvfrom failed in ping", strerror(errno), state, true);
 	(*received)++;
-	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, roundTripTime(buf, state));
+	float rtt = roundTripTime(buf, state);
+	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, rtt);
+	updateTimeStats(timeStats, rtt);
 }
 
 static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, uint32_t *seq, char *packet)
@@ -88,7 +100,8 @@ void ping(state_t *state)
 	    .tv_sec = 0,
 	    .tv_usec = 0,
 	};
-	char packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
+	char  packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
+	float timeStats[4] = {0};
 
 	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
@@ -109,7 +122,7 @@ void ping(state_t *state)
 			select(state->socket + 1, &rfds, NULL, NULL, &tv);
 			char buf[BUFSIZE] = {0};
 			if (FD_ISSET(state->socket, &rfds))
-				receiveResponse(buf, state, host, &received, seq);
+				receiveResponse(buf, state, host, &received, seq, timeStats);
 
 			struct timeval timer;
 			if (gettimeofday(&timer, NULL) == -1)
@@ -120,7 +133,7 @@ void ping(state_t *state)
 			if (checkSIGINT(state))
 				break;
 		}
-		statistics(host->name, seq, received);
+		statistics(host->name, seq, received, timeStats);
 	}
 	close(state->socket);
 }
