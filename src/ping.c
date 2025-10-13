@@ -58,6 +58,26 @@ static void updateLastSend(struct timeval *lastSend)
 	gettimeofday(lastSend, NULL);
 }
 
+static void receiveResponse(char *buf, state_t *state, host_t *host, uint32_t *received, uint32_t seq)
+{
+	socklen_t addrlen = BUFSIZE;
+	ssize_t   bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, (struct sockaddr *)&host->addr, &addrlen);
+	if (bytesNb == -1)
+		fatalError("recvfrom failed in ping", strerror(errno), state, true);
+	(*received)++;
+	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, 0);
+}
+
+static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, uint32_t *seq, char *packet)
+{
+	createEchoRequest(packet);
+	if (sendto(state->socket, packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE, 0, (struct sockaddr *)&host->addr,
+	           sizeof(host->addr)) == -1)
+		fatalError("sendto failed in ping", strerror(errno), state, true);
+	(*seq)++;
+	updateLastSend(lastSend);
+}
+
 void ping(state_t *state)
 {
 	fd_set         rfds;
@@ -65,45 +85,34 @@ void ping(state_t *state)
 	    .tv_sec = 0,
 	    .tv_usec = 0,
 	};
+	char packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
 
 	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
 	{
-		struct timeval lastSend = {};
-		host_t        *host = &state->hosts[i];
-		connectToHost(host, state);
-		char     packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
+		struct timeval lastSend = {
+		    .tv_sec = 0,
+		    .tv_usec = 0,
+		};
+		host_t  *host = &state->hosts[i];
 		uint32_t seq = 0;
 		uint32_t received = 0;
+
+		connectToHost(host, state);
 		while (1)
 		{
-			// Check if received any packets
 			FD_ZERO(&rfds);
 			FD_SET(state->socket, &rfds);
 			select(state->socket + 1, &rfds, NULL, NULL, &tv);
-
 			char buf[BUFSIZE] = {0};
 			if (FD_ISSET(state->socket, &rfds))
-			{
-				socklen_t addrlen = BUFSIZE;
-				ssize_t   bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, (struct sockaddr *)&host->addr, &addrlen);
-				if (bytesNb == -1)
-					fatalError("recvfrom failed in ping", strerror(errno), state, true);
-				received++;
-				receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, 0);
-			}
+				receiveResponse(buf, state, host, &received, seq);
 
 			struct timeval timer;
 			gettimeofday(&timer, NULL);
 			if (timer.tv_sec - lastSend.tv_sec >= 1 && timer.tv_usec > lastSend.tv_usec)
-			{
-				createEchoRequest(packet);
-				if (sendto(state->socket, packet, sizeof(packet), 0, (struct sockaddr *)&host->addr,
-				           sizeof(host->addr)) == -1)
-					fatalError("sendto failed in ping", strerror(errno), state, true);
-				seq++;
-				updateLastSend(&lastSend);
-			}
+				sendPacket(&lastSend, state, host, &seq, packet);
+
 			if (checkSIGINT(state))
 				break;
 		}
