@@ -29,10 +29,10 @@ static void fillData(char *start, uint16_t size)
 		start[i] = c++;
 }
 
-void createEchoRequest(char *buf)
+void createEchoRequest(char *packet)
 {
 	static uint16_t sequence;
-	struct icmphdr *request = (struct icmphdr *)buf;
+	struct icmphdr *request = (struct icmphdr *)packet;
 	request->type = ICMP_ECHO;
 	request->code = 0;
 	request->un.echo.id = getpid();
@@ -40,7 +40,7 @@ void createEchoRequest(char *buf)
 	request->checksum = 0;
 
 	uint16_t dataSize = DEFAULT_DATA_SIZE;
-	char    *data = buf + sizeof(struct icmphdr);
+	char    *data = packet + sizeof(struct icmphdr);
 	if (dataSize >= sizeof(struct timeval))
 	{
 		struct timeval *tv = (struct timeval *)data;
@@ -50,5 +50,5 @@ void createEchoRequest(char *buf)
 	else
 		fillData(data, dataSize);
 
-	request->checksum = checksum(buf, BUFSIZE);
+	request->checksum = checksum(packet, BUFSIZE);
 }

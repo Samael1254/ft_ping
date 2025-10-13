@@ -36,9 +36,9 @@ void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsRece
 	printf("round-trip min/avg/max/stddev = \n");
 }
 
-void receivedPacket(uint16_t packetSize, const char *hostname, uint32_t seq, uint32_t ttl, float time)
+void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time)
 {
-	printf("%u bytes from %s: icmp_seq=%u ttl=%u time=%f ms\n", packetSize, hostname, seq, ttl, time);
+	printf("%u bytes from %s: icmp_seq=%u ttl=%u time=%f ms\n", packetSize, ipstr, seq, ttl, time);
 }
 
 void help(void)
