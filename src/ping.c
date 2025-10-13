@@ -2,6 +2,7 @@
 #include "ft_ping.h"
 #include <arpa/inet.h>
 #include <bits/types/struct_timeval.h>
+#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -9,55 +10,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
 
-static uint16_t checksum(void *buf, uint32_t size)
-{
-	uint32_t        sum = 0;
-	const uint16_t *data = buf;
-	for (uint32_t i = 0; i < size; i++)
-	{
-		uint16_t word = data[i];
-		sum += word;
-	}
-	uint16_t chksum = (sum >> 4) + ((sum << 1) >> 1);
-	return ~chksum;
-}
-
-static void fillData(char *start, uint16_t size)
-{
-	char c = 'a';
-	for (uint16_t i = 0; i < size; i++, c++)
-		start[i] = c++;
-}
-
-static void createEchoRequest(char *buf)
-{
-	static uint16_t sequence;
-	struct icmphdr *request = (struct icmphdr *)buf;
-	request->type = ICMP_ECHO;
-	request->code = 0;
-	request->un.echo.id = getpid();
-	request->un.echo.sequence = sequence++;
-	request->checksum = 0;
-
-	uint16_t dataSize = DEFAULT_DATA_SIZE;
-	char    *data = buf + sizeof(struct icmphdr);
-	if (dataSize >= sizeof(struct timeval))
-	{
-		struct timeval *tv = (struct timeval *)data;
-		gettimeofday(tv, NULL);
-		fillData(data + sizeof(struct timeval), dataSize - sizeof(struct timeval));
-	}
-	else
-		fillData(data, dataSize);
-
-	request->checksum = checksum(buf, BUFSIZE);
-}
-
-static void establishConnection(host_t *host)
+static void connectToHost(host_t *host, state_t *state)
 {
 	struct addrinfo hints = {
 	    .ai_family = AF_INET,
@@ -73,7 +31,7 @@ static void establishConnection(host_t *host)
 
 	int status = getaddrinfo(host->name, NULL, &hints, &info);
 	if (status != 0)
-		fatalError("getaddrinfo failed in establishConnection", gai_strerror(status));
+		fatalError("getaddrinfo failed in establishConnection", gai_strerror(status), state, true);
 
 	struct addrinfo *iter = info;
 	while (iter)
@@ -85,31 +43,63 @@ static void establishConnection(host_t *host)
 
 	freeaddrinfo(info);
 	printf("PING %s (%s): %d data bytes\n", host->name, host->ipstr, 56);
-	// char hostname[256];
-	// char service[256];
-	// getnameinfo((struct sockaddr *)&host->addr, sizeof(host->addr), hostname, 256, service, 256, 0);
-	// printf("hostname: %s, service: %s\n", hostname, service);
-	// const char ipaddr[16] = "127.0.0.1";
-	// {
-	// }
 }
 
-// static void setupHost(host_t *host) {}
+static void setupSocket(state_t *state)
+{
+	state->socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	if (state->socket == -1)
+		fatalError("socket failed in setupSocket", strerror(errno), state, false);
+}
+
+static void updateLastSend(struct timeval *lastSend)
+{
+	gettimeofday(lastSend, NULL);
+}
 
 void ping(state_t *state)
 {
-	state->socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+	// fd_set         rfds;
+	struct timeval lastSend = {};
+	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
 	{
 		host_t host = state->hosts[i];
-		establishConnection(&host);
-		char buf[sizeof(struct iphdr) + sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
+		connectToHost(&host, state);
+		char     packet[sizeof(struct iphdr) + sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
+		uint32_t seq = 0;
 		while (1)
 		{
-			if (checkSIGINT())
+			// struct timeval tv = {
+			//     .tv_sec = 0,
+			//     .tv_usec = 0,
+			// };
+			// FD_ZERO(&rfds);
+			// FD_SET(state->socket, &rfds);
+			// select(state->socket + 1, &rfds, NULL, NULL, &tv);
+
+			// char buf[BUFSIZE];
+			// if (FD_ISSET(state->socket, &rfds))
+			// {
+			// 	recvfrom(state->socket, buf, BUFSIZE, 0, (struct sockaddr *)&host.addr, NULL);
+			// 	receivedPacket(strlen(buf), host.name, seq, 0, 0);
+			// }
+			struct timeval timer;
+			gettimeofday(&timer, NULL);
+			if (timer.tv_sec - lastSend.tv_sec >= 1 && timer.tv_usec > lastSend.tv_usec)
+			{
+				createEchoRequest(packet);
+				if (sendto(state->socket, packet, sizeof(packet), 0, (struct sockaddr *)&host.addr,
+				           sizeof(host.addr)) == -1)
+					fatalError("sendto failed in ping", strerror(errno), state, true);
+				printf("SENT: %u at %ld\n", seq, timer.tv_sec);
+				seq++;
+				updateLastSend(&lastSend);
+			}
+			if (checkSIGINT(state))
 				break;
-			sendto(state->socket, buf, sizeof(buf), 0, (struct sockaddr *)&host.addr, sizeof(host.addr));
-			sleep(1);
 		}
+		statistics(host.name, seq, seq);
 	}
+	close(state->socket);
 }

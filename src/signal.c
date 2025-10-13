@@ -1,27 +1,29 @@
+#include "defs.h"
 #include <errno.h>
 #include <ft_ping.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/socket.h>
 
 static void interrupt(int signal)
 {
 	(void)signal;
 }
 
-bool checkSIGINT()
+bool checkSIGINT(state_t *state)
 {
 	sigset_t set;
 	sigemptyset(&set);
 	if (sigpending(&set) == -1)
-		fatalError("sigpending failed in ping", strerror(errno));
+		fatalError("sigpending failed in ping", strerror(errno), state, true);
 	int isMember = sigismember(&set, SIGINT);
 	if (isMember == -1)
-		fatalError("sigismember failed in ping", strerror(errno));
+		fatalError("sigismember failed in ping", strerror(errno), state, true);
 	return (bool)isMember;
 }
 
-void setSignalHandlers()
+void setSignalHandlers(state_t *state)
 {
 	sigset_t mask;
 	sigemptyset(&mask);
@@ -32,5 +34,5 @@ void setSignalHandlers()
 	sa.sa_handler = interrupt;
 	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGINT, &sa, NULL) == -1)
-		fatalError("sigaction failed in setSignalHandlers", strerror(errno));
+		fatalError("sigaction failed in setSignalHandlers", strerror(errno), state, false);
 }

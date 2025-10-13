@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "ft_ping.h"
+#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -13,6 +14,8 @@ static void freeHost(host_t *host)
 
 void freeState(state_t *state)
 {
+	if (!state)
+		return;
 	for (uint8_t i = 0; i < state->hostsCount; i++)
 		freeHost(&state->hosts[i]);
 	if (state->hosts)
@@ -24,7 +27,7 @@ void initState(state_t *state, char **argv)
 	state->hostsCount = countHosts(argv + 1);
 	state->hosts = getHosts(argv + 1, state->hostsCount);
 	if (!state->hosts)
-		fatalError("malloc failed", "in getHosts");
+		fatalError("malloc failed in getHosts", strerror(errno), state, false);
 }
 
 int main(int argc, char **argv)
@@ -42,7 +45,7 @@ int main(int argc, char **argv)
 	state_t state = {};
 	initState(&state, argv);
 
-	setSignalHandlers();
+	setSignalHandlers(&state);
 	if (options[Help])
 	{
 		help();

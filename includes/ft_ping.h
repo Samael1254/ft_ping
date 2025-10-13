@@ -8,17 +8,20 @@ void invalidOption(char option);
 void unrecognizedOption(const char *option);
 void help(void);
 void error(const char *type, const char *msg);
-void fatalError(const char *type, const char *msg);
+void fatalError(const char *type, const char *msg, state_t *state, bool closeSocket);
+void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived);
+void receivedPacket(uint16_t packetSize, const char *hostname, uint32_t seq, uint32_t ttl, float time);
 
 void    getOptions(char **args, bool *options);
 host_t *getHosts(char **args, uint8_t hostsCount);
 uint8_t countHosts(char **args);
 
-void setSignalHandlers();
-bool checkSIGINT();
+void setSignalHandlers(state_t *state);
+bool checkSIGINT(state_t *state);
 
 void freeState(state_t *state);
 
+void createEchoRequest(char *buf);
 void ping(state_t *state);
 
 #endif

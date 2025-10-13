@@ -8,7 +8,8 @@ HEADERS = ft_ping.h
 
 HEADERS := $(addprefix $(HEADERS_DIR), $(HEADERS))
 
-SRCS := main.c args.c output.c signal.c ping.c
+SRCS := main.c args.c output.c signal.c ping.c \
+		request.c
 
 SRCS := $(addprefix $(SRCS_DIR), $(SRCS))
 
@@ -22,7 +23,7 @@ CFLAGS = -Wall -Wextra -Werror -I./includes -I./libft/includes
 
 LIBFT = ./libft/lib/libft.a
 
-LDFLAGS := -lft -Llibft/lib
+LDFLAGS := -lft -Llibft/lib -lm
 
 $(NAME): $(LIBFT) $(OBJS) $(HEADERS)
 	@ echo " \033[33mCompiling ft_ping\033[m"
