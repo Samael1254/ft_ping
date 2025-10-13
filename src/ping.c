@@ -29,8 +29,7 @@ static void connectToHost(host_t *host, state_t *state)
 	};
 
 	struct addrinfo *info;
-
-	int status = getaddrinfo(host->name, NULL, &hints, &info);
+	int              status = getaddrinfo(host->name, NULL, &hints, &info);
 	if (status != 0)
 		fatalError("getaddrinfo failed in establishConnection", gai_strerror(status), state, true);
 
@@ -53,19 +52,22 @@ static void setupSocket(state_t *state)
 		fatalError("socket failed in setupSocket", strerror(errno), state, false);
 }
 
-static void updateLastSend(struct timeval *lastSend)
+static float roundTripTime(const char *packet, state_t *state)
 {
-	gettimeofday(lastSend, NULL);
+	struct timeval sendTime = *(struct timeval *)(packet + sizeof(struct iphdr) + sizeof(struct icmphdr));
+	struct timeval recvTime;
+	if (gettimeofday(&recvTime, NULL) == -1)
+		fatalError("gettimeofday failed in roundTripTime", strerror(errno), state, true);
+	return (float)(recvTime.tv_sec - sendTime.tv_sec) * 1000 + (float)(recvTime.tv_usec - sendTime.tv_usec) / 1000;
 }
 
 static void receiveResponse(char *buf, state_t *state, host_t *host, uint32_t *received, uint32_t seq)
 {
-	socklen_t addrlen = BUFSIZE;
-	ssize_t   bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, (struct sockaddr *)&host->addr, &addrlen);
+	ssize_t bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, NULL, NULL);
 	if (bytesNb == -1)
 		fatalError("recvfrom failed in ping", strerror(errno), state, true);
 	(*received)++;
-	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, 0);
+	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, roundTripTime(buf, state));
 }
 
 static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, uint32_t *seq, char *packet)
@@ -75,7 +77,8 @@ static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, u
 	           sizeof(host->addr)) == -1)
 		fatalError("sendto failed in ping", strerror(errno), state, true);
 	(*seq)++;
-	updateLastSend(lastSend);
+	if (gettimeofday(lastSend, NULL) == -1)
+		fatalError("gettimeofday failed in sendPacket", strerror(errno), state, true);
 }
 
 void ping(state_t *state)
@@ -109,7 +112,8 @@ void ping(state_t *state)
 				receiveResponse(buf, state, host, &received, seq);
 
 			struct timeval timer;
-			gettimeofday(&timer, NULL);
+			if (gettimeofday(&timer, NULL) == -1)
+				fatalError("gettimeofday failed in ping", strerror(errno), state, true);
 			if (timer.tv_sec - lastSend.tv_sec >= 1 && timer.tv_usec > lastSend.tv_usec)
 				sendPacket(&lastSend, state, host, &seq, packet);
 
