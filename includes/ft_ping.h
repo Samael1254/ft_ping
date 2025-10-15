@@ -15,7 +15,7 @@ void unrecognizedOption(const char *option);
 void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats);
 void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time);
 
-void    getOptions(char **args, bool *options);
+void    getOptions(int argc, char **argv, option_t *options);
 host_t *getHosts(char **args, uint8_t hostsCount);
 uint8_t countHosts(char **args);
 

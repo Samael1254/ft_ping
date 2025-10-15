@@ -2,6 +2,7 @@
 #define DEFS_H
 
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define VALID_OPTIONS_NB  2
@@ -13,6 +14,13 @@ enum EOptions
 	Verbose,
 	Help,
 };
+
+typedef struct Option
+{
+	bool  isActive;
+	bool  hasParam;
+	char *param;
+} option_t;
 
 typedef struct Host
 {

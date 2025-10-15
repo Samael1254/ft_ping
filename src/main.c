@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <strings.h>
 
 static void freeHost(host_t *host)
@@ -34,15 +33,14 @@ int main(int argc, char **argv)
 	if (argc == 1)
 		argError("missing host operand");
 
-	bool options[VALID_OPTIONS_NB];
-	memset(options, 0, VALID_OPTIONS_NB * sizeof(bool));
-	getOptions(argv + 1, options);
+	option_t options[VALID_OPTIONS_NB] = {0};
+	getOptions(argc, argv, options);
 
 	state_t state = {};
 	initState(&state, argv);
 
 	setSignalHandlers(&state);
-	if (options[Help])
+	if (options[Help].isActive)
 	{
 		help();
 		return EXIT_SUCCESS;

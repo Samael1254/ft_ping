@@ -1,7 +1,9 @@
 #include "defs.h"
 #include "ft_ping.h"
+#include "getopt.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -12,39 +14,37 @@ static uint8_t getOptionId(const char option)
 	for (uint8_t i = 0; i < VALID_OPTIONS_NB; i++)
 		if (option == validOptions[i])
 			return i;
-	invalidOption(option);
 	exit(64);
 }
 
-static uint8_t getLongOptionId(const char *option)
+void getOptions(int argc, char **argv, option_t *options)
 {
-	const char *validLongOptions[VALID_OPTIONS_NB] = {"verbose", "help"};
-	for (uint8_t i = 0; i < VALID_OPTIONS_NB; i++)
-		if (strcmp(option, validLongOptions[i]) == 0)
-			return i;
-	unrecognizedOption(option);
-	exit(64);
-}
+	int        c = 0;
+	const char shortopts[] = "v?";
+	int        val = 0;
 
-void getOptions(char **args, bool *options)
-{
-	while (*args)
+	const struct option longopts[] = {{"help", no_argument, &val, '?'}, {"verbose", no_argument, &val, 'v'}, {}};
+	opterr = 0;
+
+	while (true)
 	{
-		const char *arg = *args;
-		if (arg[0] != '-')
+		int longindex = 0;
+		c = getopt_long(argc, argv, shortopts, longopts, &longindex);
+		if (c == -1)
+			break;
+		if (c == '?')
 		{
-			args++;
-			continue;
+			if (optopt == 0)
+				unrecognizedOption(argv[optind - 1]);
+			else
+				invalidOption((char)optopt);
+			exit(64);
 		}
-		if (arg[1] == '-')
-		{
-			options[getLongOptionId(arg + 2)] = true;
-			args++;
-			continue;
-		}
-		for (unsigned int j = 1; j < strlen(arg); j++)
-			options[getOptionId(arg[j])] = true;
-		args++;
+		int       id = c == 0 ? getOptionId((char)val) : getOptionId((char)c);
+		option_t *option = &options[id];
+		option->isActive = true;
+
+		// printf("optopt = %c, result: %c\n", optopt, c);
 	}
 }
 
