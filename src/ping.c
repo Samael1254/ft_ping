@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 static void connectToHost(host_t *host, state_t *state)
@@ -71,14 +72,16 @@ static void updateTimeStats(float *timeStats, float rtt)
 	timeStats[3] += rtt * rtt;
 }
 
-static void receiveResponse(char *buf, state_t *state, host_t *host, uint32_t *received, uint32_t seq, float *timeStats)
+static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *receivedCount, uint32_t seq,
+                          float *timeStats)
 {
 	ssize_t bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, NULL, NULL);
 	if (bytesNb == -1)
 		fatalError("recvfrom failed in ping", strerror(errno), state, true);
-	(*received)++;
-	float rtt = roundTripTime(buf, state);
-	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq, 0, rtt);
+	(*receivedCount)++;
+	float   rtt = roundTripTime(buf, state);
+	uint8_t ttl = (uint8_t)time(NULL);
+	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq - 1, ttl, rtt);
 	updateTimeStats(timeStats, rtt);
 }
 
@@ -112,7 +115,7 @@ void ping(state_t *state)
 		};
 		host_t  *host = &state->hosts[i];
 		uint32_t seq = 0;
-		uint32_t received = 0;
+		uint32_t receivedCount = 0;
 
 		connectToHost(host, state);
 		while (1)
@@ -122,7 +125,7 @@ void ping(state_t *state)
 			select(state->socket + 1, &rfds, NULL, NULL, &tv);
 			char buf[BUFSIZE] = {0};
 			if (FD_ISSET(state->socket, &rfds))
-				receiveResponse(buf, state, host, &received, seq, timeStats);
+				receivePacket(buf, state, host, &receivedCount, seq, timeStats);
 
 			struct timeval timer;
 			if (gettimeofday(&timer, NULL) == -1)
@@ -133,7 +136,7 @@ void ping(state_t *state)
 			if (checkSIGINT(state))
 				break;
 		}
-		statistics(host->name, seq, received, timeStats);
+		statistics(host->name, seq, receivedCount, timeStats);
 	}
 	close(state->socket);
 }
