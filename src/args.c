@@ -64,7 +64,7 @@ uint8_t countHosts(char **args)
 host_t *getHosts(char **args, uint8_t hostsCount)
 {
 	if (hostsCount == 0)
-		error("missing host operand", NULL);
+		argError("missing host operand");
 	host_t *hosts = (host_t *)malloc(hostsCount * sizeof(host_t));
 	if (!hosts)
 		return NULL;

@@ -2,14 +2,12 @@
 #include "ft_ping.h"
 #include <arpa/inet.h>
 #include <bits/types/struct_timeval.h>
-#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -23,7 +21,7 @@ static void connectToHost(host_t *host, state_t *state)
 	    .ai_family = AF_INET,
 	    .ai_socktype = SOCK_RAW,
 	    .ai_flags = AI_PASSIVE,
-	    .ai_protocol = 1,
+	    .ai_protocol = IPPROTO_ICMP,
 	    .ai_canonname = NULL,
 	    .ai_addr = NULL,
 	    .ai_next = NULL,
@@ -32,7 +30,7 @@ static void connectToHost(host_t *host, state_t *state)
 	struct addrinfo *info;
 	int              status = getaddrinfo(host->name, NULL, &hints, &info);
 	if (status != 0)
-		fatalError("getaddrinfo failed in establishConnection", gai_strerror(status), state, true);
+		error("unknown host", state, true);
 
 	struct addrinfo *iter = info;
 	while (iter)
@@ -50,7 +48,7 @@ static void setupSocket(state_t *state)
 {
 	state->socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (state->socket == -1)
-		fatalError("socket failed in setupSocket", strerror(errno), state, false);
+		fatalError("socket failed in setupSocket", state, false);
 }
 
 static float roundTripTime(const char *packet, state_t *state)
@@ -58,7 +56,7 @@ static float roundTripTime(const char *packet, state_t *state)
 	struct timeval sendTime = *(struct timeval *)(packet + sizeof(struct iphdr) + sizeof(struct icmphdr));
 	struct timeval recvTime;
 	if (gettimeofday(&recvTime, NULL) == -1)
-		fatalError("gettimeofday failed in roundTripTime", strerror(errno), state, true);
+		fatalError("gettimeofday failed in roundTripTime", state, true);
 	return (float)(recvTime.tv_sec - sendTime.tv_sec) * 1000 + (float)(recvTime.tv_usec - sendTime.tv_usec) / 1000;
 }
 
@@ -77,7 +75,7 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 {
 	ssize_t bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, NULL, NULL);
 	if (bytesNb == -1)
-		fatalError("recvfrom failed in ping", strerror(errno), state, true);
+		fatalError("recvfrom failed in ping", state, true);
 	(*receivedCount)++;
 	float   rtt = roundTripTime(buf, state);
 	uint8_t ttl = (uint8_t)time(NULL);
@@ -90,10 +88,10 @@ static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, u
 	createEchoRequest(packet);
 	if (sendto(state->socket, packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE, 0, (struct sockaddr *)&host->addr,
 	           sizeof(host->addr)) == -1)
-		fatalError("sendto failed in ping", strerror(errno), state, true);
+		fatalError("sendto failed in ping", state, true);
 	(*seq)++;
 	if (gettimeofday(lastSend, NULL) == -1)
-		fatalError("gettimeofday failed in sendPacket", strerror(errno), state, true);
+		fatalError("gettimeofday failed in sendPacket", state, true);
 }
 
 void ping(state_t *state)
@@ -129,7 +127,7 @@ void ping(state_t *state)
 
 			struct timeval timer;
 			if (gettimeofday(&timer, NULL) == -1)
-				fatalError("gettimeofday failed in ping", strerror(errno), state, true);
+				fatalError("gettimeofday failed in ping", state, true);
 			if (timer.tv_sec - lastSend.tv_sec >= 1 && timer.tv_usec > lastSend.tv_usec)
 				sendPacket(&lastSend, state, host, &seq, packet);
 

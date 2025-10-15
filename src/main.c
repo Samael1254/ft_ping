@@ -1,6 +1,5 @@
 #include "defs.h"
 #include "ft_ping.h"
-#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -27,16 +26,13 @@ void initState(state_t *state, char **argv)
 	state->hostsCount = countHosts(argv + 1);
 	state->hosts = getHosts(argv + 1, state->hostsCount);
 	if (!state->hosts)
-		fatalError("malloc failed in getHosts", strerror(errno), state, false);
+		fatalError("malloc failed in getHosts", state, false);
 }
 
 int main(int argc, char **argv)
 {
 	if (argc == 1)
-	{
-		error("missing host operand", NULL);
-		return EXIT_FAILURE;
-	}
+		argError("missing host operand");
 
 	bool options[VALID_OPTIONS_NB];
 	memset(options, 0, VALID_OPTIONS_NB * sizeof(bool));

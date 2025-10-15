@@ -4,11 +4,14 @@
 #include "defs.h"
 #include <stdbool.h>
 
+void help(void);
+
+void error(const char *msg, state_t *state, bool closeSocket);
+void argError(const char *msg);
+void fatalError(const char *msg, state_t *state, bool closeSocket);
 void invalidOption(char option);
 void unrecognizedOption(const char *option);
-void help(void);
-void error(const char *type, const char *msg);
-void fatalError(const char *type, const char *msg, state_t *state, bool closeSocket);
+
 void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats);
 void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time);
 
