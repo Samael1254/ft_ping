@@ -10,7 +10,7 @@
 
 static uint8_t getOptionId(const char option)
 {
-	const char validOptions[VALID_OPTIONS_NB] = {'v', '?'};
+	const char validOptions[VALID_OPTIONS_NB] = {'v', '?', 'c'};
 	for (uint8_t i = 0; i < VALID_OPTIONS_NB; i++)
 		if (option == validOptions[i])
 			return i;
@@ -19,11 +19,12 @@ static uint8_t getOptionId(const char option)
 
 void getOptions(int argc, char **argv, option_t *options)
 {
-	int        c = 0;
-	const char shortopts[] = "v?";
-	int        val = 0;
-
-	const struct option longopts[] = {{"help", no_argument, &val, '?'}, {"verbose", no_argument, &val, 'v'}, {}};
+	int                 c = 0;
+	const char          shortopts[] = ":v?c:";
+	const struct option longopts[] = {{"verbose", no_argument, NULL, 'v'},
+	                                  {"help", no_argument, NULL, '?'},
+	                                  {"count", required_argument, NULL, 'c'},
+	                                  {}};
 	opterr = 0;
 
 	while (true)
@@ -32,19 +33,27 @@ void getOptions(int argc, char **argv, option_t *options)
 		c = getopt_long(argc, argv, shortopts, longopts, &longindex);
 		if (c == -1)
 			break;
+		printf("optopt: %c, c: %c, arg: %s\n", optopt, c, optarg);
 		if (c == '?')
 		{
 			if (optopt == 0)
 				unrecognizedOption(argv[optind - 1]);
-			else
-				invalidOption((char)optopt);
-			exit(64);
+			invalidOption((char)optopt);
 		}
-		int       id = c == 0 ? getOptionId((char)val) : getOptionId((char)c);
+		if (c == ':')
+		{
+			if (strlen(argv[optind - 1]) > 1)
+				argRequiredLong(argv[optind - 1]);
+			argRequired((char)optopt);
+		}
+		int       id = getOptionId((char)c);
 		option_t *option = &options[id];
 		option->isActive = true;
-
-		// printf("optopt = %c, result: %c\n", optopt, c);
+		if (optarg)
+		{
+			option->hasParam = true;
+			option->param = strdup(optarg);
+		}
 	}
 }
 

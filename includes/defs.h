@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define VALID_OPTIONS_NB  2
+#define VALID_OPTIONS_NB  3
 #define BUFSIZE           512
 #define DEFAULT_DATA_SIZE 56
 
@@ -32,9 +32,10 @@ typedef struct Host
 
 typedef struct State
 {
-	host_t *hosts;
-	uint8_t hostsCount;
-	int     socket;
+	host_t  *hosts;
+	uint8_t  hostsCount;
+	option_t options[VALID_OPTIONS_NB];
+	int      socket;
 } state_t;
 
 #endif
