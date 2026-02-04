@@ -28,7 +28,10 @@ LDFLAGS := -lft -Llibft/lib -lm
 $(NAME): $(LIBFT) $(OBJS) $(HEADERS)
 	@ echo " \033[33mCompiling ft_ping\033[m"
 	@ $(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
-	@ echo " \033[1;32m Ping\033[0;1;32m binary compiled\033[m"
+	@ echo " \033[1;32m Ping binary compiled\033[m"
+	@ echo " \033[33mAdding raw socket permission\033[m"
+	@ sudo setcap cap_net_raw+ep $(NAME)
+	@ echo " \033[32m Ping can now create raw sockets\033[m"
 
 $(BUILD_DIR)%.o: $(SRCS_DIR)%.c
 	@ mkdir -p $(BUILD_DIR)
