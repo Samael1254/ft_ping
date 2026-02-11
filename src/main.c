@@ -32,9 +32,6 @@ void initState(state_t *state, int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	if (argc == 1)
-		argError("missing host operand");
-
 	state_t state = {};
 	initState(&state, argc, argv);
 
