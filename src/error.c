@@ -9,7 +9,7 @@
 
 void error(const char *msg, state_t *state, bool closeSocket)
 {
-	fprintf(stderr, "ping: %s\n", msg);
+	fprintf(stderr, "ft_ping: %s\n", msg);
 	if (closeSocket)
 		close(state->socket);
 	freeState(state);
@@ -18,42 +18,42 @@ void error(const char *msg, state_t *state, bool closeSocket)
 
 void argError(const char *msg)
 {
-	fprintf(stderr, "ping: %s\n", msg);
-	fprintf(stderr, "Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ft_ping: %s\n", msg);
+	fprintf(stderr, "Try 'ft_ping --help' for more information.\n");
 	exit(64);
 }
 
 void invalidOption(char option)
 {
-	fprintf(stderr, "ping: invalid option -- '%c'\n", option);
-	fprintf(stderr, "Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ft_ping: invalid option -- '%c'\n", option);
+	fprintf(stderr, "Try 'ft_ping --help' for more information.\n");
 	exit(64);
 }
 
 void unrecognizedOption(const char *option)
 {
-	fprintf(stderr, "ping: unrecognized option '%s'\n", option);
-	fprintf(stderr, "Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ft_ping: unrecognized option '%s'\n", option);
+	fprintf(stderr, "Try 'ft_ping --help' for more information.\n");
 	exit(64);
 }
 
 void argRequired(char option)
 {
-	fprintf(stderr, "ping: option requires an argument -- '%c'\n", option);
-	fprintf(stderr, "Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ft_ping: option requires an argument -- '%c'\n", option);
+	fprintf(stderr, "Try 'ft_ping --help' for more information.\n");
 	exit(64);
 }
 
 void argRequiredLong(const char *option)
 {
-	fprintf(stderr, "ping: option '%s' requires an argument \n", option);
-	fprintf(stderr, "Try 'ping --help' for more information.\n");
+	fprintf(stderr, "ft_ping: option '%s' requires an argument \n", option);
+	fprintf(stderr, "Try 'ft_ping --help' for more information.\n");
 	exit(64);
 }
 
 void fatalError(const char *msg, state_t *state, bool closeSocket)
 {
-	fprintf(stderr, "ping: %s: %s\n", msg, strerror(errno));
+	fprintf(stderr, "ft_ping: %s: %s\n", msg, strerror(errno));
 	if (closeSocket)
 		close(state->socket);
 	freeState(state);
