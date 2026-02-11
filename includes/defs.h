@@ -13,6 +13,7 @@ enum EOptions
 {
 	Verbose,
 	Help,
+	Count
 };
 
 typedef struct Option
