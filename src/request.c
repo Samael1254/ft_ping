@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "ft_ping.h"
+#include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -35,8 +36,8 @@ void createEchoRequest(char *packet)
 	struct icmphdr *request = (struct icmphdr *)packet;
 	request->type = ICMP_ECHO;
 	request->code = 0;
-	request->un.echo.id = getpid();
-	request->un.echo.sequence = sequence++;
+	request->un.echo.id = htons(getpid());
+	request->un.echo.sequence = htons(sequence++);
 	request->checksum = 0;
 
 	uint16_t dataSize = DEFAULT_DATA_SIZE;
