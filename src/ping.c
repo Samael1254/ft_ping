@@ -52,15 +52,6 @@ static void setupSocket(state_t *state)
 		fatalError("socket failed in setupSocket", state, false);
 }
 
-static float roundTripTime(const char *packet, state_t *state)
-{
-	struct timeval sendTime = *(struct timeval *)(packet + sizeof(struct iphdr) + sizeof(struct icmphdr));
-	struct timeval recvTime;
-	if (gettimeofday(&recvTime, NULL) == -1)
-		fatalError("gettimeofday failed in roundTripTime", state, true);
-	return (float)(recvTime.tv_sec - sendTime.tv_sec) * 1000 + (float)(recvTime.tv_usec - sendTime.tv_usec) / 1000;
-}
-
 static void updateTimeStats(float *timeStats, float rtt)
 {
 	timeStats[0] += rtt;
@@ -77,9 +68,12 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 	ssize_t bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, NULL, NULL);
 	if (bytesNb == -1)
 		fatalError("recvfrom failed in ping", state, true);
+
+	uint8_t ttl;
+	float   rtt;
+	if (!parseEchoReply(buf, (size_t)bytesNb, &ttl, &rtt))
+		return;
 	(*receivedCount)++;
-	float   rtt = roundTripTime(buf, state);
-	uint8_t ttl = (uint8_t)time(NULL);
 	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq - 1, ttl, rtt);
 	updateTimeStats(timeStats, rtt);
 }

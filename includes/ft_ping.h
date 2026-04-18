@@ -26,6 +26,7 @@ bool checkSIGINT(state_t *state);
 void freeState(state_t *state);
 
 void createEchoRequest(char *packet);
+bool parseEchoReply(const char *packet, size_t bytesRead, uint8_t *ttl, float *rtt);
 
 void ping(state_t *state);
 
