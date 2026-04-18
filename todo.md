@@ -6,5 +6,5 @@
 
 - Fix ttl
 - Bugs when a second ping is running
-- Fix --help and -?
+- Fix --count and -c
 - Check that -c argument is number

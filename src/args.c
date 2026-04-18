@@ -25,7 +25,7 @@ void getOptions(int argc, char **argv, option_t *options)
 	                                  {"help", no_argument, NULL, '?'},
 	                                  {"count", required_argument, NULL, 'c'},
 	                                  {}};
-	opterr = 0;
+	opterr = 0; // Do not let getopt print error messages
 
 	while (true)
 	{
@@ -36,9 +36,12 @@ void getOptions(int argc, char **argv, option_t *options)
 		printf("optopt: %c, c: %c, arg: %s\n", optopt, c, optarg);
 		if (c == '?')
 		{
-			if (optopt == 0)
-				unrecognizedOption(argv[optind - 1]);
-			invalidOption((char)optopt);
+			if (strcmp(argv[optind - 1], "-?") != 0 && strcmp(argv[optind - 1], "--help") != 0)
+			{
+				if (optopt == 0)
+					unrecognizedOption(argv[optind - 1]);
+				invalidOption((char)optopt);
+			}
 		}
 		if (c == ':')
 		{

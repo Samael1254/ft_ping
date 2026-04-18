@@ -24,6 +24,11 @@ void freeState(state_t *state)
 void initState(state_t *state, int argc, char **argv)
 {
 	getOptions(argc, argv, state->options);
+	if (state->options[Help].isActive)
+	{
+		help();
+		exit(EXIT_SUCCESS);
+	}
 	state->hostsCount = countHosts(argv + 1);
 	state->hosts = getHosts(argv + 1, state->hostsCount);
 	if (!state->hosts)
@@ -36,11 +41,6 @@ int main(int argc, char **argv)
 	initState(&state, argc, argv);
 
 	setSignalHandlers(&state);
-	if (state.options[Help].isActive)
-	{
-		help();
-		return EXIT_SUCCESS;
-	}
 	ping(&state);
 	freeState(&state);
 	return EXIT_SUCCESS;
