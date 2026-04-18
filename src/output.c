@@ -25,7 +25,7 @@ void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32
 	printf("%u bytes from %s: icmp_seq=%u ttl=%u time=%.3f ms\n", packetSize, ipstr, seq, ttl, time);
 }
 
-void help(void)
+void help()
 {
 	printf("Usage: ping [OPTION...] HOST ...\n");
 	printf("Send ICMP ECHO_REQUEST packets to network hosts.\n");

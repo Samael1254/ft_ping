@@ -102,6 +102,8 @@ void ping(state_t *state)
 	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
 	{
+		struct timeval globalTime;
+		gettimeofday(&globalTime, NULL);
 		struct timeval lastSend = {
 		    .tv_sec = 0,
 		    .tv_usec = 0,
@@ -112,6 +114,9 @@ void ping(state_t *state)
 		int32_t  maxCount = -1;
 		if (state->options[Count].isActive)
 			maxCount = atoi(state->options[Count].param);
+		int32_t processTimeout = -1;
+		if (state->options[Timeout].isActive)
+			processTimeout = atoi(state->options[Timeout].param);
 
 		connectToHost(host, state);
 

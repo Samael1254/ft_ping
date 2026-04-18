@@ -4,7 +4,7 @@
 #include "defs.h"
 #include <stdbool.h>
 
-void help(void);
+void help();
 void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats);
 void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time);
 

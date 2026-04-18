@@ -28,7 +28,7 @@ static void checkStrIsNumber(const char *str)
 
 static uint8_t getOptionId(const char option)
 {
-	const char validOptions[VALID_OPTIONS_NB] = {'v', '?', 'c', 'q'};
+	const char validOptions[VALID_OPTIONS_NB] = {'v', '?', 'c', 'q', 'w'};
 	for (uint8_t i = 0; i < VALID_OPTIONS_NB; i++)
 		if (option == validOptions[i])
 			return i;
@@ -38,11 +38,12 @@ static uint8_t getOptionId(const char option)
 int getOptions(int argc, char **argv, option_t *options)
 {
 	int                 c = 0;
-	const char          shortopts[] = ":v?qc:";
+	const char          shortopts[] = ":v?qc:w:";
 	const struct option longopts[] = {{"verbose", no_argument, NULL, 'v'},
 	                                  {"help", no_argument, NULL, '?'},
 	                                  {"count", required_argument, NULL, 'c'},
 	                                  {"quiet", no_argument, NULL, 'q'},
+	                                  {"timeout", required_argument, NULL, 'w'},
 	                                  {}};
 	opterr = 0; // Do not let getopt print error messages
 

@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define VALID_OPTIONS_NB  4
+#define VALID_OPTIONS_NB  5
 #define BUFSIZE           512
 #define DEFAULT_DATA_SIZE 56
 
@@ -14,7 +14,8 @@ enum EOptions
 	Verbose,
 	Help,
 	Count,
-	Quiet
+	Quiet,
+	Timeout
 };
 
 typedef struct Option
