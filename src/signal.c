@@ -5,33 +5,27 @@
 #include <string.h>
 #include <sys/socket.h>
 
+volatile sig_atomic_t g_stop_ping = 0;
+
 static void interrupt(int signal)
 {
 	(void)signal;
+	g_stop_ping = 1;
 }
 
 bool checkSIGINT(state_t *state)
 {
-	sigset_t set;
-	sigemptyset(&set);
-	if (sigpending(&set) == -1)
-		fatalError("sigpending failed in ping", state, true);
-	int isMember = sigismember(&set, SIGINT);
-	if (isMember == -1)
-		fatalError("sigismember failed in ping", state, true);
-	return (bool)isMember;
+	(void)state;
+	return g_stop_ping == 1;
 }
 
 void setSignalHandlers(state_t *state)
 {
-	sigset_t mask;
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	sigprocmask(SIG_BLOCK, &mask, NULL);
-
 	struct sigaction sa = {0};
 	sa.sa_handler = interrupt;
 	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+
 	if (sigaction(SIGINT, &sa, NULL) == -1)
 		fatalError("sigaction failed in setSignalHandlers", state, false);
 }

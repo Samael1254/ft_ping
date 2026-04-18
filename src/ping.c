@@ -95,19 +95,14 @@ static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, u
 	           sizeof(host->addr)) == -1)
 		fatalError("sendto failed in ping", state, true);
 	(*seq)++;
-	if (gettimeofday(lastSend, NULL) == -1)
-		fatalError("gettimeofday failed in sendPacket", state, true);
+	gettimeofday(lastSend, NULL);
 }
 
 void ping(state_t *state)
 {
-	fd_set         rfds;
-	struct timeval tv = {
-	    .tv_sec = 0,
-	    .tv_usec = 0,
-	};
-	char  packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
-	float timeStats[4] = {0};
+	fd_set rfds;
+	char   packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
+	float  timeStats[4] = {0};
 
 	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
@@ -124,20 +119,36 @@ void ping(state_t *state)
 			maxCount = atoi(state->options[Count].param);
 
 		connectToHost(host, state);
+
 		while (1 && (maxCount == -1 || receivedCount < (uint32_t)maxCount))
 		{
+			struct timeval timeout;
+			struct timeval now;
+			gettimeofday(&now, NULL);
+			long timeLeft = 1000 - ((now.tv_sec - lastSend.tv_sec) * 1000 + (now.tv_usec - lastSend.tv_usec) / 1000);
+			if (timeLeft <= 0)
+			{
+				sendPacket(&lastSend, state, host, &seq, packet);
+				timeLeft = 1000;
+			}
+			timeout.tv_sec = timeLeft / 1000;
+			timeout.tv_usec = (timeLeft % 1000) * 1000;
+
 			FD_ZERO(&rfds);
 			FD_SET(state->socket, &rfds);
-			select(state->socket + 1, &rfds, NULL, NULL, &tv);
-			char buf[BUFSIZE] = {0};
-			if (FD_ISSET(state->socket, &rfds))
-				receivePacket(buf, state, host, &receivedCount, seq, timeStats);
+			int ret = select(state->socket + 1, &rfds, NULL, NULL, &timeout);
+			if (ret == -1)
+			{
+				if (checkSIGINT(state))
+					break;
+				continue;
+			}
 
-			struct timeval timer;
-			if (gettimeofday(&timer, NULL) == -1)
-				fatalError("gettimeofday failed in ping", state, true);
-			if (timer.tv_sec - lastSend.tv_sec >= 1 && timer.tv_usec > lastSend.tv_usec)
-				sendPacket(&lastSend, state, host, &seq, packet);
+			if (FD_ISSET(state->socket, &rfds))
+			{
+				char buf[BUFSIZE] = {0};
+				receivePacket(buf, state, host, &receivedCount, seq, timeStats);
+			}
 
 			if (checkSIGINT(state))
 				break;

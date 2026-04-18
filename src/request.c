@@ -26,7 +26,7 @@ static uint16_t checksum(void *buf, uint16_t size)
 static void fillData(char *start, uint16_t size)
 {
 	char c = 'a';
-	for (uint16_t i = 0; i < size; i++, c++)
+	for (uint16_t i = 0; i < size; i++)
 		start[i] = c++;
 }
 
