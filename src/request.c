@@ -50,5 +50,6 @@ void createEchoRequest(char *packet)
 	else
 		fillData(data, dataSize);
 
-	request->checksum = checksum(packet, BUFSIZE);
+	uint16_t packetLen = sizeof(struct icmphdr) + DEFAULT_DATA_SIZE;
+	request->checksum = checksum(packet, packetLen);
 }
