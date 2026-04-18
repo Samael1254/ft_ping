@@ -74,7 +74,8 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 	if (!parseEchoReply(buf, (size_t)bytesNb, &ttl, &rtt))
 		return;
 	(*receivedCount)++;
-	receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq - 1, ttl, rtt);
+	if (!state->options[Quiet].isActive)
+		receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq - 1, ttl, rtt);
 	updateTimeStats(timeStats, rtt);
 }
 
