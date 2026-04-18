@@ -87,11 +87,13 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, uint32_t *seq, char *packet)
 {
 	createEchoRequest(packet);
-	// clang-format off
-	if (sendto(state->socket, packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE, 0, (struct sockaddr *)&host->addr,
+	if (sendto(state->socket,
+	           packet,
+	           sizeof(struct icmphdr) + DEFAULT_DATA_SIZE,
+	           0,
+	           (struct sockaddr *)&host->addr,
 	           sizeof(host->addr)) == -1)
 		fatalError("sendto failed in ping", state, true);
-	// clang-format on
 	(*seq)++;
 	if (gettimeofday(lastSend, NULL) == -1)
 		fatalError("gettimeofday failed in sendPacket", state, true);
@@ -117,13 +119,12 @@ void ping(state_t *state)
 		host_t  *host = &state->hosts[i];
 		uint32_t seq = 0;
 		uint32_t receivedCount = 0;
-		// int32_t  maxCount = -1;
-		// if (state->options[Count].isActive)
-		// 	maxCount = atoi(state->options[Count].param);
-		// printf("maxCount: %d\n", maxCount);
+		int32_t  maxCount = -1;
+		if (state->options[Count].isActive)
+			maxCount = atoi(state->options[Count].param);
 
 		connectToHost(host, state);
-		while (1)
+		while (1 && (maxCount == -1 || receivedCount < (uint32_t)maxCount))
 		{
 			FD_ZERO(&rfds);
 			FD_SET(state->socket, &rfds);
