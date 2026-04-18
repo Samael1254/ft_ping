@@ -2,6 +2,7 @@
 #include "ft_ping.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 
@@ -23,14 +24,14 @@ void freeState(state_t *state)
 
 void initState(state_t *state, int argc, char **argv)
 {
-	getOptions(argc, argv, state->options);
+	int nextIndex = getOptions(argc, argv, state->options);
 	if (state->options[Help].isActive)
 	{
 		help();
 		exit(EXIT_SUCCESS);
 	}
-	state->hostsCount = countHosts(argv + 1);
-	state->hosts = getHosts(argv + 1, state->hostsCount);
+	state->hostsCount = argc - nextIndex;
+	state->hosts = getHosts(argv + nextIndex, state->hostsCount);
 	if (!state->hosts)
 		fatalError("malloc failed in getHosts", state, false);
 }

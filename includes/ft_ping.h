@@ -15,10 +15,10 @@ void invalidOption(char option);
 void unrecognizedOption(const char *option);
 void argRequired(char option);
 void argRequiredLong(const char *option);
+void invalidValue(const char *value, const char *badStr);
 
-void    getOptions(int argc, char **argv, option_t *options);
+int     getOptions(int argc, char **argv, option_t *options);
 host_t *getHosts(char **args, uint8_t hostsCount);
-uint8_t countHosts(char **args);
 
 void setSignalHandlers(state_t *state);
 bool checkSIGINT(state_t *state);

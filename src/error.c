@@ -51,6 +51,12 @@ void argRequiredLong(const char *option)
 	exit(64);
 }
 
+void invalidValue(const char *value, const char *badStr)
+{
+	fprintf(stderr, "ft_ping: invalid value ('%s' near '%s')\n", value, badStr);
+	exit(1);
+}
+
 void fatalError(const char *msg, state_t *state, bool closeSocket)
 {
 	fprintf(stderr, "ft_ping: %s: %s\n", msg, strerror(errno));

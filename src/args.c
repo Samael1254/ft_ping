@@ -1,12 +1,30 @@
 #include "defs.h"
 #include "ft_ping.h"
 #include "getopt.h"
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+
+static void checkStrIsNumber(const char *str)
+{
+	size_t j;
+
+	if (!str[0])
+		return;
+	j = 0;
+	if ((str[0] == '-' || str[0] == '+') && str[1])
+		j = 1;
+	while (str[j])
+	{
+		if (!isdigit(str[j]))
+			invalidValue(str, str + j);
+		j++;
+	}
+}
 
 static uint8_t getOptionId(const char option)
 {
@@ -17,7 +35,7 @@ static uint8_t getOptionId(const char option)
 	exit(64);
 }
 
-void getOptions(int argc, char **argv, option_t *options)
+int getOptions(int argc, char **argv, option_t *options)
 {
 	int                 c = 0;
 	const char          shortopts[] = ":v?c:";
@@ -33,7 +51,7 @@ void getOptions(int argc, char **argv, option_t *options)
 		c = getopt_long(argc, argv, shortopts, longopts, &longindex);
 		if (c == -1)
 			break;
-		printf("optopt: %c, c: %c, arg: %s\n", optopt, c, optarg);
+		// printf("optopt: %c, c: %c, arg: %s\n", optopt, c, optarg);
 		if (c == '?')
 		{
 			if (strcmp(argv[optind - 1], "-?") != 0 && strcmp(argv[optind - 1], "--help") != 0)
@@ -49,6 +67,8 @@ void getOptions(int argc, char **argv, option_t *options)
 				argRequiredLong(argv[optind - 1]);
 			argRequired((char)optopt);
 		}
+		if (c == 'c')
+			checkStrIsNumber(optarg);
 		int       id = getOptionId((char)c);
 		option_t *option = &options[id];
 		option->isActive = true;
@@ -58,19 +78,7 @@ void getOptions(int argc, char **argv, option_t *options)
 			option->param = strdup(optarg);
 		}
 	}
-}
-
-uint8_t countHosts(char **args)
-{
-	uint8_t count = 0;
-
-	while (*args)
-	{
-		if ((*args)[0] != '-')
-			count++;
-		args++;
-	}
-	return count;
+	return optind;
 }
 
 host_t *getHosts(char **args, uint8_t hostsCount)
@@ -83,10 +91,6 @@ host_t *getHosts(char **args, uint8_t hostsCount)
 
 	uint8_t i = 0;
 	while (*args)
-	{
-		if ((*args)[0] != '-')
-			hosts[i++].name = *args;
-		args++;
-	}
+		hosts[i++].name = *args++;
 	return hosts;
 }
