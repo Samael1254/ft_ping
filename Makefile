@@ -19,11 +19,9 @@ DEPS = $(OBJS:.o=.d)
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Werror -I./includes -I./libft/includes
+CFLAGS = -Wall -Wextra -Werror -I./includes
 
-LIBFT = ./libft/lib/libft.a
-
-LDFLAGS := -lft -Llibft/lib -lm
+LDFLAGS = -lm
 
 $(NAME): $(LIBFT) $(OBJS) $(HEADERS)
 	@ echo " \033[33mCompiling ft_ping\033[m"
@@ -36,22 +34,6 @@ $(NAME): $(LIBFT) $(OBJS) $(HEADERS)
 $(BUILD_DIR)%.o: $(SRCS_DIR)%.c
 	@ mkdir -p $(BUILD_DIR)
 	@ $(CC) $(CFLAGS) -c $< -o $@
-
-$(LIBFT):
-	@ echo " \033[33mCompiling Libft\033[m"
-	@ cd libft && $(MAKE) -s -j
-	@ tput cuu1 && tput el
-	@ tput cuu1 && tput el
-	@ echo " \033[34m Libft compiled\033[m"
-
-fclean_libft:
-	@ echo " \033[33mCleaning Libft\033[m"
-	@ cd libft && $(MAKE) -s fclean
-	@ tput cuu1 && tput el
-	@ tput cuu1 && tput el
-	@ echo " \033[34m Libft cleaned\033[m"
-
-libft: fclean_libft $(LIBFT)
 
 all: $(NAME)
 
@@ -67,6 +49,6 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: clean fclean re all libft fclean_libft
+.PHONY: clean fclean re all
 
 -include $(DEP)
