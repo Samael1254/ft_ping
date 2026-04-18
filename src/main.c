@@ -43,4 +43,5 @@ int main(int argc, char **argv)
 	}
 	ping(&state);
 	freeState(&state);
+	return EXIT_SUCCESS;
 }
