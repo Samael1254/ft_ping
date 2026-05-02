@@ -102,8 +102,8 @@ void ping(state_t *state)
 	setupSocket(state);
 	for (uint8_t i = 0; i < state->hostsCount; i++)
 	{
-		struct timeval globalTime;
-		gettimeofday(&globalTime, NULL);
+		struct timeval startTime;
+		gettimeofday(&startTime, NULL);
 		struct timeval lastSend = {
 		    .tv_sec = 0,
 		    .tv_usec = 0,
@@ -122,7 +122,7 @@ void ping(state_t *state)
 
 		while (1 && (maxCount == -1 || receivedCount < (uint32_t)maxCount))
 		{
-			struct timeval timeout;
+			struct timeval selectTimeout;
 			struct timeval now;
 			gettimeofday(&now, NULL);
 			long timeLeft = 1000 - ((now.tv_sec - lastSend.tv_sec) * 1000 + (now.tv_usec - lastSend.tv_usec) / 1000);
@@ -131,12 +131,15 @@ void ping(state_t *state)
 				sendPacket(&lastSend, state, host, &seq, packet);
 				timeLeft = 1000;
 			}
-			timeout.tv_sec = timeLeft / 1000;
-			timeout.tv_usec = (timeLeft % 1000) * 1000;
+			selectTimeout.tv_sec = timeLeft / 1000;
+			selectTimeout.tv_usec = (timeLeft % 1000) * 1000;
+			long totalTime = now.tv_sec - startTime.tv_sec;
+			if (processTimeout > -1 && totalTime >= processTimeout)
+				break;
 
 			FD_ZERO(&rfds);
 			FD_SET(state->socket, &rfds);
-			int ret = select(state->socket + 1, &rfds, NULL, NULL, &timeout);
+			int ret = select(state->socket + 1, &rfds, NULL, NULL, &selectTimeout);
 			if (ret == -1)
 			{
 				if (checkSIGINT(state))
