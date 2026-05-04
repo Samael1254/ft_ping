@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,6 +118,9 @@ void ping(state_t *state)
 		int32_t processTimeout = -1;
 		if (state->options[Timeout].isActive)
 			processTimeout = atoi(state->options[Timeout].param);
+		int32_t interval = 1;
+		if (state->options[Interval].isActive)
+			processTimeout = atoi(state->options[Interval].param);
 
 		connectToHost(host, state);
 
@@ -125,11 +129,12 @@ void ping(state_t *state)
 			struct timeval selectTimeout;
 			struct timeval now;
 			gettimeofday(&now, NULL);
-			long timeLeft = 1000 - ((now.tv_sec - lastSend.tv_sec) * 1000 + (now.tv_usec - lastSend.tv_usec) / 1000);
+			long timeLeft =
+			    1000L * interval - ((now.tv_sec - lastSend.tv_sec) * 1000 + (now.tv_usec - lastSend.tv_usec) / 1000);
 			if (timeLeft <= 0)
 			{
 				sendPacket(&lastSend, state, host, &seq, packet);
-				timeLeft = 1000;
+				timeLeft = 1000L * interval;
 			}
 			selectTimeout.tv_sec = timeLeft / 1000;
 			selectTimeout.tv_usec = (timeLeft % 1000) * 1000;

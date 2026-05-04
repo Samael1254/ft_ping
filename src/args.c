@@ -38,22 +38,26 @@ static uint8_t getOptionId(const char option)
 int getOptions(int argc, char **argv, option_t *options)
 {
 	int                 c = 0;
-	const char          shortopts[] = ":v?qc:w:";
+	const char          shortopts[] = ":v?qc:w:i:";
 	const struct option longopts[] = {{"verbose", no_argument, NULL, 'v'},
 	                                  {"help", no_argument, NULL, '?'},
 	                                  {"count", required_argument, NULL, 'c'},
 	                                  {"quiet", no_argument, NULL, 'q'},
 	                                  {"timeout", required_argument, NULL, 'w'},
+	                                  {"interval", required_argument, NULL, 'i'},
 	                                  {}};
 	opterr = 0; // Do not let getopt print error messages
 
+	printf("TESTETSTETST1\n");
 	while (true)
 	{
 		int longindex = 0;
 		c = getopt_long(argc, argv, shortopts, longopts, &longindex);
 		if (c == -1)
+		{
+			printf("TESTETSTETST2\n");
 			break;
-		// printf("optopt: %c, c: %c, arg: %s\n", optopt, c, optarg);
+		}
 		if (c == '?')
 		{
 			if (strcmp(argv[optind - 1], "-?") != 0 && strcmp(argv[optind - 1], "--help") != 0)
@@ -80,6 +84,7 @@ int getOptions(int argc, char **argv, option_t *options)
 			option->param = strdup(optarg);
 		}
 	}
+	printf("TESTETSTETST\n");
 	return optind;
 }
 
