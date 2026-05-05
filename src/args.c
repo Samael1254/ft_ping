@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "ft_ping.h"
-#include "getopt.h"
 #include <ctype.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
