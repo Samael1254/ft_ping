@@ -28,7 +28,7 @@ static void checkStrIsNumber(const char *str)
 
 static uint8_t getOptionId(const char option)
 {
-	const char validOptions[VALID_OPTIONS_NB] = {'v', '?', 'c', 'q', 'w'};
+	const char validOptions[VALID_OPTIONS_NB] = {'v', '?', 'c', 'q', 'w', 'i'};
 	for (uint8_t i = 0; i < VALID_OPTIONS_NB; i++)
 		if (option == validOptions[i])
 			return i;
@@ -48,16 +48,12 @@ int getOptions(int argc, char **argv, option_t *options)
 	                                  {}};
 	opterr = 0; // Do not let getopt print error messages
 
-	printf("TESTETSTETST1\n");
 	while (true)
 	{
 		int longindex = 0;
 		c = getopt_long(argc, argv, shortopts, longopts, &longindex);
 		if (c == -1)
-		{
-			printf("TESTETSTETST2\n");
 			break;
-		}
 		if (c == '?')
 		{
 			if (strcmp(argv[optind - 1], "-?") != 0 && strcmp(argv[optind - 1], "--help") != 0)
@@ -73,7 +69,7 @@ int getOptions(int argc, char **argv, option_t *options)
 				argRequiredLong(argv[optind - 1]);
 			argRequired((char)optopt);
 		}
-		if (c == 'c')
+		if (c == 'c' || c == 't' || c == 'i')
 			checkStrIsNumber(optarg);
 		int       id = getOptionId((char)c);
 		option_t *option = &options[id];
@@ -84,7 +80,6 @@ int getOptions(int argc, char **argv, option_t *options)
 			option->param = strdup(optarg);
 		}
 	}
-	printf("TESTETSTETST\n");
 	return optind;
 }
 

@@ -83,11 +83,7 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, uint32_t *seq, char *packet)
 {
 	createEchoRequest(packet);
-	if (sendto(state->socket,
-	           packet,
-	           sizeof(struct icmphdr) + DEFAULT_DATA_SIZE,
-	           0,
-	           (struct sockaddr *)&host->addr,
+	if (sendto(state->socket, packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE, 0, (struct sockaddr *)&host->addr,
 	           sizeof(host->addr)) == -1)
 		fatalError("sendto failed in ping", state, true);
 	(*seq)++;
@@ -112,15 +108,16 @@ void ping(state_t *state)
 		host_t  *host = &state->hosts[i];
 		uint32_t seq = 0;
 		uint32_t receivedCount = 0;
-		int32_t  maxCount = -1;
+
+		int32_t maxCount = -1;
 		if (state->options[Count].isActive)
 			maxCount = atoi(state->options[Count].param);
 		int32_t processTimeout = -1;
 		if (state->options[Timeout].isActive)
 			processTimeout = atoi(state->options[Timeout].param);
 		int32_t interval = 1;
-		if (state->options[Interval].isActive)
-			processTimeout = atoi(state->options[Interval].param);
+		// if (state->options[Interval].isActive)
+		// 	interval = atoi(state->options[Interval].param);
 
 		connectToHost(host, state);
 
