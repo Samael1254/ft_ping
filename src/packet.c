@@ -31,14 +31,13 @@ static uint16_t checksum(const void *buf, uint16_t size)
 
 static void fillData(char *start, uint16_t size, const char *pattern)
 {
-	// if (!pattern)
-	// {
-	(void)pattern;
-	char c = 'a';
-	for (uint16_t i = 0; i < size; i++)
-		start[i] = c++;
-	return;
-	// }
+	if (!pattern)
+	{
+		uint8_t counter = 0;
+		for (uint16_t i = 0; i < size; i++)
+			start[i] = (char)counter++;
+		return;
+	}
 }
 
 void createEchoRequest(char *packet, uint32_t dataSize, const char *pattern)
