@@ -80,14 +80,13 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 	updateTimeStats(timeStats, rtt);
 }
 
-static void sendPacket(struct timeval *lastSend, state_t *state, host_t *host, uint32_t *seq, char *packet)
+static void sendPacket(state_t *state, host_t *host, uint32_t *seq, char *packet)
 {
 	createEchoRequest(packet);
 	if (sendto(state->socket, packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE, 0, (struct sockaddr *)&host->addr,
 	           sizeof(host->addr)) == -1)
 		fatalError("sendto failed in ping", state, true);
 	(*seq)++;
-	gettimeofday(lastSend, NULL);
 }
 
 void ping(state_t *state)
@@ -116,8 +115,8 @@ void ping(state_t *state)
 		if (state->options[Timeout].isActive)
 			processTimeout = atoi(state->options[Timeout].param);
 		int32_t interval = 1;
-		// if (state->options[Interval].isActive)
-		// 	interval = atoi(state->options[Interval].param);
+		if (state->options[Interval].isActive)
+			interval = atoi(state->options[Interval].param);
 
 		connectToHost(host, state);
 
@@ -130,7 +129,8 @@ void ping(state_t *state)
 			    1000L * interval - ((now.tv_sec - lastSend.tv_sec) * 1000 + (now.tv_usec - lastSend.tv_usec) / 1000);
 			if (timeLeft <= 0)
 			{
-				sendPacket(&lastSend, state, host, &seq, packet);
+				sendPacket(state, host, &seq, packet);
+				gettimeofday(&lastSend, NULL);
 				timeLeft = 1000L * interval;
 			}
 			selectTimeout.tv_sec = timeLeft / 1000;

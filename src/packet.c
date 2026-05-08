@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static uint16_t checksum(void *buf, uint16_t size)
+static uint16_t checksum(const void *buf, uint16_t size)
 {
 	uint32_t        sum = 0;
 	int             nleft = size;
