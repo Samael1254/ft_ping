@@ -5,8 +5,9 @@
 #include <stdbool.h>
 
 void help();
-void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats);
-void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time);
+void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats,
+                uint32_t dataSize);
+void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time, uint32_t dataSize);
 
 void error(const char *msg, state_t *state, bool closeSocket);
 void argError(const char *msg);
@@ -25,7 +26,7 @@ bool checkSIGINT(state_t *state);
 
 void freeState(state_t *state);
 
-void createEchoRequest(char *packet);
+void createEchoRequest(char *packet, uint32_t dataSize, const char *pattern);
 bool parseEchoReply(const char *packet, size_t bytesRead, uint8_t *ttl, float *rtt);
 
 void ping(state_t *state);

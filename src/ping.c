@@ -17,7 +17,7 @@
 #include <time.h>
 #include <unistd.h>
 
-static void connectToHost(host_t *host, state_t *state)
+static void connectToHost(host_t *host, state_t *state, uint32_t dataSize)
 {
 	struct addrinfo hints = {
 	    .ai_family = AF_INET,
@@ -43,7 +43,7 @@ static void connectToHost(host_t *host, state_t *state)
 	}
 
 	freeaddrinfo(info);
-	printf("PING %s (%s): %d data bytes\n", host->name, host->ipstr, 56);
+	printf("PING %s (%s): %u data bytes\n", host->name, host->ipstr, dataSize);
 }
 
 static void setupSocket(state_t *state)
@@ -64,7 +64,7 @@ static void updateTimeStats(float *timeStats, float rtt)
 }
 
 static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *receivedCount, uint32_t seq,
-                          float *timeStats)
+                          float *timeStats, uint32_t dataSize)
 {
 	ssize_t bytesNb = recvfrom(state->socket, buf, BUFSIZE, 0, NULL, NULL);
 	if (bytesNb == -1)
@@ -76,14 +76,20 @@ static void receivePacket(char *buf, state_t *state, host_t *host, uint32_t *rec
 		return;
 	(*receivedCount)++;
 	if (!state->options[Quiet].isActive)
-		receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq - 1, ttl, rtt);
-	updateTimeStats(timeStats, rtt);
+		receivedPacket(bytesNb - sizeof(struct iphdr), host->ipstr, seq - 1, ttl, rtt, dataSize);
+	if (dataSize >= sizeof(struct timeval))
+		updateTimeStats(timeStats, rtt);
 }
 
-static void sendPacket(state_t *state, host_t *host, uint32_t *seq, char *packet)
+static void sendPacket(state_t *state, host_t *host, uint32_t *seq, char *packet, uint32_t dataSize,
+                       const char *pattern)
 {
-	createEchoRequest(packet);
-	if (sendto(state->socket, packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE, 0, (struct sockaddr *)&host->addr,
+	createEchoRequest(packet, dataSize, pattern);
+	if (sendto(state->socket,
+	           packet,
+	           sizeof(struct icmphdr) + DEFAULT_DATA_SIZE,
+	           0,
+	           (struct sockaddr *)&host->addr,
 	           sizeof(host->addr)) == -1)
 		fatalError("sendto failed in ping", state, true);
 	(*seq)++;
@@ -108,17 +114,13 @@ void ping(state_t *state)
 		uint32_t seq = 0;
 		uint32_t receivedCount = 0;
 
-		int32_t maxCount = -1;
-		if (state->options[Count].isActive)
-			maxCount = atoi(state->options[Count].param);
-		int32_t processTimeout = -1;
-		if (state->options[Timeout].isActive)
-			processTimeout = atoi(state->options[Timeout].param);
-		int32_t interval = 1;
-		if (state->options[Interval].isActive)
-			interval = atoi(state->options[Interval].param);
+		int32_t     maxCount = state->options[Count].isActive ? atoi(state->options[Count].param) : -1;
+		int32_t     processTimeout = state->options[Timeout].isActive ? atoi(state->options[Timeout].param) : -1;
+		int32_t     interval = state->options[Interval].isActive ? atoi(state->options[Interval].param) : 1;
+		uint16_t    dataSize = state->options[Size].isActive ? atoi(state->options[Size].param) : DEFAULT_DATA_SIZE;
+		const char *pattern = state->options[Pattern].isActive ? state->options[Pattern].param : NULL;
 
-		connectToHost(host, state);
+		connectToHost(host, state, dataSize);
 
 		while (1 && (maxCount == -1 || receivedCount < (uint32_t)maxCount))
 		{
@@ -129,7 +131,7 @@ void ping(state_t *state)
 			    1000L * interval - ((now.tv_sec - lastSend.tv_sec) * 1000 + (now.tv_usec - lastSend.tv_usec) / 1000);
 			if (timeLeft <= 0)
 			{
-				sendPacket(state, host, &seq, packet);
+				sendPacket(state, host, &seq, packet, dataSize, pattern);
 				gettimeofday(&lastSend, NULL);
 				timeLeft = 1000L * interval;
 			}
@@ -152,13 +154,13 @@ void ping(state_t *state)
 			if (FD_ISSET(state->socket, &rfds))
 			{
 				char buf[BUFSIZE] = {0};
-				receivePacket(buf, state, host, &receivedCount, seq, timeStats);
+				receivePacket(buf, state, host, &receivedCount, seq, timeStats, dataSize);
 			}
 
 			if (checkSIGINT(state))
 				break;
 		}
-		statistics(host->name, seq, receivedCount, timeStats);
+		statistics(host->name, seq, receivedCount, timeStats, dataSize);
 	}
 	close(state->socket);
 }

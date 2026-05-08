@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats)
+void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsReceived, float *timeStats,
+                uint32_t dataSize)
 {
 	timeStats[0] /= (float)packetsSent;
 	timeStats[3] = sqrtf((timeStats[3] / (float)packetsSent) - timeStats[0] * timeStats[0]);
@@ -13,16 +14,20 @@ void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsRece
 
 	printf("--- %s ping statistics ---\n", hostname);
 	printf("%u packets transmitted. %u packets received, %u%% packet loss\n", packetsSent, packetsReceived, packetLoss);
-	printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
-	       timeStats[0],
-	       timeStats[1],
-	       timeStats[2],
-	       timeStats[3]);
+	if (dataSize >= sizeof(struct timeval))
+		printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+		       timeStats[0],
+		       timeStats[1],
+		       timeStats[2],
+		       timeStats[3]);
 }
 
-void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time)
+void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32_t ttl, float time, uint32_t dataSize)
 {
-	printf("%u bytes from %s: icmp_seq=%u ttl=%u time=%.3f ms\n", packetSize, ipstr, seq, ttl, time);
+	printf("%u bytes from %s: icmp_seq=%u ttl=%u", packetSize, ipstr, seq, ttl);
+	if (dataSize >= sizeof(struct timeval))
+		printf("time=%.3f ms", time);
+	printf("\n");
 }
 
 void help()

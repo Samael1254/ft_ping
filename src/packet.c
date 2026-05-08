@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -28,14 +29,19 @@ static uint16_t checksum(const void *buf, uint16_t size)
 	return ~sum;
 }
 
-static void fillData(char *start, uint16_t size)
+static void fillData(char *start, uint16_t size, const char *pattern)
 {
+	// if (!pattern)
+	// {
+	(void)pattern;
 	char c = 'a';
 	for (uint16_t i = 0; i < size; i++)
 		start[i] = c++;
+	return;
+	// }
 }
 
-void createEchoRequest(char *packet)
+void createEchoRequest(char *packet, uint32_t dataSize, const char *pattern)
 {
 	static uint16_t sequence;
 	struct icmphdr *header = (struct icmphdr *)packet;
@@ -45,16 +51,15 @@ void createEchoRequest(char *packet)
 	header->un.echo.sequence = htons(sequence++);
 	header->checksum = 0;
 
-	uint16_t dataSize = DEFAULT_DATA_SIZE;
-	char    *data = packet + sizeof(struct icmphdr);
+	char *data = packet + sizeof(struct icmphdr);
 	if (dataSize >= sizeof(struct timeval))
 	{
 		struct timeval *tv = (struct timeval *)data;
 		gettimeofday(tv, NULL);
-		fillData(data + sizeof(struct timeval), dataSize - sizeof(struct timeval));
+		fillData(data + sizeof(struct timeval), dataSize - sizeof(struct timeval), pattern);
 	}
 	else
-		fillData(data, dataSize);
+		fillData(data, dataSize, pattern);
 
 	header->checksum = checksum(packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE);
 }
