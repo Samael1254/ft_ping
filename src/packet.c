@@ -61,7 +61,7 @@ void createEchoRequest(char *packet, uint32_t dataSize, const char *pattern)
 	else
 		fillData(data, dataSize, pattern);
 
-	header->checksum = checksum(packet, sizeof(struct icmphdr) + DEFAULT_DATA_SIZE);
+	header->checksum = checksum(packet, sizeof(struct icmphdr) + dataSize);
 }
 
 bool parseEchoReply(const char *packet, size_t bytesRead, uint8_t *ttl, float *rtt)

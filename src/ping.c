@@ -87,7 +87,7 @@ static void sendPacket(state_t *state, host_t *host, uint32_t *seq, char *packet
 	createEchoRequest(packet, dataSize, pattern);
 	if (sendto(state->socket,
 	           packet,
-	           sizeof(struct icmphdr) + DEFAULT_DATA_SIZE,
+	           sizeof(struct icmphdr) + dataSize,
 	           0,
 	           (struct sockaddr *)&host->addr,
 	           sizeof(host->addr)) == -1)
@@ -98,7 +98,6 @@ static void sendPacket(state_t *state, host_t *host, uint32_t *seq, char *packet
 void ping(state_t *state)
 {
 	fd_set rfds;
-	char   packet[sizeof(struct icmphdr) + DEFAULT_DATA_SIZE];
 	float  timeStats[4] = {0};
 
 	setupSocket(state);
@@ -119,6 +118,10 @@ void ping(state_t *state)
 		int32_t     interval = state->options[Interval].isActive ? atoi(state->options[Interval].param) : 1;
 		uint16_t    dataSize = state->options[Size].isActive ? atoi(state->options[Size].param) : DEFAULT_DATA_SIZE;
 		const char *pattern = state->options[Pattern].isActive ? state->options[Pattern].param : NULL;
+
+		char *packet = malloc(sizeof(struct icmphdr) + dataSize);
+		if (!packet)
+			fatalError("malloc failed in ping", state, true);
 
 		connectToHost(host, state, dataSize);
 
@@ -160,6 +163,7 @@ void ping(state_t *state)
 			if (checkSIGINT(state))
 				break;
 		}
+		free(packet);
 		statistics(host->name, seq, receivedCount, timeStats, dataSize);
 	}
 	close(state->socket);
