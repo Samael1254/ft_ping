@@ -1,4 +1,3 @@
-#include "defs.h"
 #include "ft_ping.h"
 #include <ctype.h>
 #include <netinet/in.h>

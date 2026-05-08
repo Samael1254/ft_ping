@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #define VALID_OPTIONS_NB  8
-#define BUFSIZE           512
+#define BUFSIZE           1500
 #define DEFAULT_DATA_SIZE 56
 
 enum EOptions
