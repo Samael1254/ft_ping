@@ -1,5 +1,0 @@
-## Ping TODO
-
-### Options
-
-### Bugs
