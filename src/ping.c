@@ -119,7 +119,7 @@ void ping(state_t *state)
 		uint16_t    dataSize = state->options[Size].isActive ? atoi(state->options[Size].param) : DEFAULT_DATA_SIZE;
 		const char *pattern = state->options[Pattern].isActive ? state->options[Pattern].param : NULL;
 
-		char *packet = malloc(sizeof(struct icmphdr) + dataSize);
+		char *packet = calloc(sizeof(struct icmphdr) + dataSize, sizeof(char));
 		if (!packet)
 			fatalError("malloc failed in ping", state, true);
 

@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "ft_ping.h"
+#include <ctype.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
@@ -7,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -29,15 +31,36 @@ static uint16_t checksum(const void *buf, uint16_t size)
 	return ~sum;
 }
 
+static uint8_t charToHex(char c)
+{
+	if (isdigit(c))
+		return c - 48;
+	if (c >= 'A' && c <= 'F')
+		return c - 55;
+	return c - 87;
+}
+
 static void fillData(char *start, uint16_t size, const char *pattern)
 {
-	if (!pattern)
+	if (pattern)
 	{
-		uint8_t counter = 0;
+		int j = 0;
 		for (uint16_t i = 0; i < size; i++)
-			start[i] = (char)counter++;
+		{
+			start[i] = charToHex(pattern[j]) << 4;
+			j++;
+			if (!pattern[j])
+				j = 0;
+			start[i] += charToHex(pattern[j]);
+			j++;
+			if (!pattern[j])
+				j = 0;
+		}
 		return;
 	}
+	uint8_t counter = 0;
+	for (uint16_t i = 0; i < size; i++)
+		start[i] = (char)counter++;
 }
 
 void createEchoRequest(char *packet, uint32_t dataSize, const char *pattern)
