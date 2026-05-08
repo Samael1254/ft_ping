@@ -26,7 +26,7 @@ void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32
 {
 	printf("%u bytes from %s: icmp_seq=%u ttl=%u", packetSize, ipstr, seq, ttl);
 	if (dataSize >= sizeof(struct timeval))
-		printf("time=%.3f ms", time);
+		printf(" time=%.3f ms", time);
 	printf("\n");
 }
 
