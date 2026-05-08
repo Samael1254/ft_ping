@@ -43,7 +43,11 @@ static void connectToHost(host_t *host, state_t *state, uint32_t dataSize)
 	}
 
 	freeaddrinfo(info);
-	printf("PING %s (%s): %u data bytes\n", host->name, host->ipstr, dataSize);
+	int pid = getpid();
+	printf("PING %s (%s): %u data bytes", host->name, host->ipstr, dataSize);
+	if (state->options[Verbose].isActive)
+		printf(", id 0x%04x = %d", pid, pid);
+	printf("\n");
 }
 
 static void setupSocket(state_t *state)
