@@ -57,6 +57,12 @@ void invalidValue(const char *value, const char *badStr)
 	exit(1);
 }
 
+void errorPattern(const char *badStr)
+{
+	fprintf(stderr, "ft_ping: error in pattern near '%s'\n", badStr);
+	exit(1);
+}
+
 void fatalError(const char *msg, state_t *state, bool closeSocket)
 {
 	fprintf(stderr, "ft_ping: %s: %s\n", msg, strerror(errno));

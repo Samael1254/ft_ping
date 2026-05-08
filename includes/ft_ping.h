@@ -17,6 +17,7 @@ void unrecognizedOption(const char *option);
 void argRequired(char option);
 void argRequiredLong(const char *option);
 void invalidValue(const char *value, const char *badStr);
+void errorPattern(const char *badStr);
 
 int     getOptions(int argc, char **argv, option_t *options);
 host_t *getHosts(char **args, uint8_t hostsCount);

@@ -26,6 +26,21 @@ static void checkStrIsNumber(const char *str)
 	}
 }
 
+static void checkStrIsHex(const char *str)
+{
+	size_t j;
+
+	if (!str[0])
+		return;
+	j = 0;
+	while (str[j])
+	{
+		if (!isdigit(str[j]) && !(str[j] >= 'A' && str[j] <= 'F') && !(str[j] >= 'a' && str[j] <= 'f'))
+			errorPattern(str + j);
+		j++;
+	}
+}
+
 static uint8_t getOptionId(const char option)
 {
 	const char validOptions[VALID_OPTIONS_NB] = {'v', '?', 'c', 'q', 'w', 'i', 's', 'p'};
@@ -52,8 +67,7 @@ int getOptions(int argc, char **argv, option_t *options)
 
 	while (true)
 	{
-		int longindex = 0;
-		c = getopt_long(argc, argv, shortopts, longopts, &longindex);
+		c = getopt_long(argc, argv, shortopts, longopts, NULL);
 		if (c == -1)
 			break;
 		if (c == '?')
@@ -73,6 +87,8 @@ int getOptions(int argc, char **argv, option_t *options)
 		}
 		if (c == 'c' || c == 't' || c == 'i' || c == 's')
 			checkStrIsNumber(optarg);
+		if (c == 'p')
+			checkStrIsHex(optarg);
 		int       id = getOptionId((char)c);
 		option_t *option = &options[id];
 		option->isActive = true;
