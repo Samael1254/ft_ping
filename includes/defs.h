@@ -30,7 +30,6 @@ typedef struct Option
 
 typedef struct Host
 {
-	int                id;
 	char              *name;
 	struct sockaddr_in addr;
 	char               ipstr[INET_ADDRSTRLEN];
