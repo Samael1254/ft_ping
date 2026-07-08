@@ -23,7 +23,7 @@ CFLAGS = -Wall -Wextra -Werror -I./includes
 
 LDFLAGS = -lm
 
-$(NAME): $(LIBFT) $(OBJS) $(HEADERS)
+$(NAME): $(OBJS) $(HEADERS)
 	@ printf " \033[33mCompiling ft_ping\033[m\n"
 	@ $(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 	@ printf " \033[1;32m Ping binary compiled\033[m\n"
