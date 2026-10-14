@@ -54,15 +54,17 @@ int getOptions(int argc, char **argv, option_t *options)
 {
 	int                 c = 0;
 	const char          shortopts[] = ":v?qc:w:i:s:p:";
-	const struct option longopts[] = {{"verbose", no_argument, NULL, 'v'},
-	                                  {"help", no_argument, NULL, '?'},
-	                                  {"count", required_argument, NULL, 'c'},
-	                                  {"quiet", no_argument, NULL, 'q'},
-	                                  {"timeout", required_argument, NULL, 'w'},
-	                                  {"interval", required_argument, NULL, 'i'},
-	                                  {"size", required_argument, NULL, 's'},
-	                                  {"pattern", required_argument, NULL, 'p'},
-	                                  {}};
+	const struct option longopts[] = {
+	    {"verbose", no_argument, NULL, 'v'},
+	    {"help", no_argument, NULL, '?'},
+	    {"count", required_argument, NULL, 'c'},
+	    {"quiet", no_argument, NULL, 'q'},
+	    {"timeout", required_argument, NULL, 'w'},
+	    {"interval", required_argument, NULL, 'i'},
+	    {"size", required_argument, NULL, 's'},
+	    {"pattern", required_argument, NULL, 'p'},
+	    {},
+	};
 	opterr = 0; // Do not let getopt print error messages
 
 	while (true)

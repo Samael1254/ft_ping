@@ -15,10 +15,7 @@ void statistics(const char *hostname, uint32_t packetsSent, uint32_t packetsRece
 	printf("--- %s ping statistics ---\n", hostname);
 	printf("%u packets transmitted. %u packets received, %u%% packet loss\n", packetsSent, packetsReceived, packetLoss);
 	if (dataSize >= sizeof(struct timeval))
-		printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
-		       timeStats[0],
-		       timeStats[1],
-		       timeStats[2],
+		printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n", timeStats[0], timeStats[1], timeStats[2],
 		       timeStats[3]);
 }
 
@@ -32,11 +29,16 @@ void receivedPacket(uint16_t packetSize, const char *ipstr, uint32_t seq, uint32
 
 void help()
 {
-	printf("Usage: ping [OPTION...] HOST ...\n");
-	printf("Send ICMP ECHO_REQUEST packets to network hosts.\n");
-	printf("\n Options valid for all request types:\n");
-	printf("  -c, --count=NUMBER         stop after sending NUMBER packets\n");
-	printf("  -v, --verbose              verbose output\n");
-	printf("\n Options valid for --echo requests:\n");
-	printf("  -?, --help                 give this help list\n");
+	printf("Usage: ft_ping [OPTIONS...] <HOST> ...\n\n");
+	printf("Send ICMP ECHO_REQUEST packets to network hosts.\n\n");
+	printf("Options:\n");
+	printf("  -c, --count <NUMBER>        stop after sending NUMBER packets\n");
+	printf("  -t, --timeout <SECONDS>     stop after SECONDS seconds\n");
+	printf("  -i, --interval <SECONDS>    send a packet every SECONDS seconds\n");
+	printf(
+	    "  -s, --size <BYTES>          set packet payload size to BYTES bytes(if too small, no timestamp will fit)\n");
+	printf("  -p, --pattern <HEX>         set the payload repeating pattern to HEX (must be a hexadecimal string)\n");
+	printf("  -q, --quiet                 do not show packet reception output\n");
+	printf("  -v, --verbose               verbose output\n");
+	printf("  -?, --help                  give this help list\n");
 }
